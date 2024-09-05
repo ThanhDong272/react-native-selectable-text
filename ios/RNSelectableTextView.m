@@ -199,6 +199,23 @@ UITextPosition* beginning;
     return _backedTextInputView;
 }
 
+//- (void)tappedMenuItem:(NSString *)eventType
+//{
+//    RCTTextSelection *selection = self.selection;
+//
+//    NSUInteger start = selection.start;
+//    NSUInteger end = selection.end - selection.start;
+//
+//    self.onSelection(@{
+//        @"content": [[self.attributedText string] substringWithRange:NSMakeRange(start, end)],
+//        @"eventType": eventType,
+//        @"selectionStart": @(start),
+//        @"selectionEnd": @(selection.end)
+//    });
+//
+//    [_backedTextInputView setSelectedTextRange:nil notifyDelegate:false];
+//}
+
 - (void)tappedMenuItem:(NSString *)eventType
 {
     RCTTextSelection *selection = self.selection;
@@ -206,14 +223,107 @@ UITextPosition* beginning;
     NSUInteger start = selection.start;
     NSUInteger end = selection.end - selection.start;
 
-    self.onSelection(@{
-        @"content": [[self.attributedText string] substringWithRange:NSMakeRange(start, end)],
-        @"eventType": eventType,
-        @"selectionStart": @(start),
-        @"selectionEnd": @(selection.end)
-    });
+    // Get the selected text
+    NSString *selectedText = [[self.attributedText string] substringWithRange:NSMakeRange(start, end)];
 
-    [_backedTextInputView setSelectedTextRange:nil notifyDelegate:false];
+    // Check if the selected menu item is the first item in menuItems
+    if ([eventType isEqualToString:self.menuItems.firstObject]) {
+        // If the first item is selected, show menuItemsExtend
+        [self showMenuItemsExtend];
+        // Debugging to confirm the new menu is displayed
+        NSLog(@"Extended menu items displayed: %@", self.menuItemsExtend);
+    } else {
+        // Define options for other selections
+        NSDictionary *options = @{
+            @"content": selectedText,
+            @"eventType": eventType,
+            @"selectionStart": @(start),
+            @"selectionEnd": @(selection.end)
+        };
+
+        // Call the onSelection callback with the updated options
+        self.onSelection(options);
+
+        // Reset the selected text range
+        [_backedTextInputView setSelectedTextRange:nil notifyDelegate:false];
+    }
+}
+
+- (void)showMenuItemsExtend
+{
+    // Debugging to check if menuItemsExtend is being called correctly
+    NSLog(@"Trying to show extended menu items: %@", self.menuItemsExtend);
+
+    if (!self.menuItemsExtend || self.menuItemsExtend.count == 0) {
+        NSLog(@"No extended menu items to display");
+        return; // Do nothing if menuItemsExtend is not set or empty
+    }
+
+    UIMenuController *menuController = [UIMenuController sharedMenuController];
+    
+    // Debug to check if menu is already visible
+//    if (menuController.isMenuVisible) {
+//        NSLog(@"Menu is already visible");
+//        return;
+//    }
+
+    NSMutableArray *menuControllerItems = [NSMutableArray arrayWithCapacity:self.menuItemsExtend.count];
+
+    for (NSString *menuItemName in self.menuItemsExtend) {
+        NSString *sel = [NSString stringWithFormat:@"%@%@", SELECTOR_CUSTOM, menuItemName];
+        UIMenuItem *item = [[UIMenuItem alloc] initWithTitle:menuItemName action:NSSelectorFromString(sel)];
+        [menuControllerItems addObject:item];
+    }
+
+    // Set the new menu items and make them visible
+    menuController.menuItems = menuControllerItems;
+    [menuController setTargetRect:self.bounds inView:self];
+    [menuController setMenuVisible:YES animated:YES];
+
+    // Debugging to confirm the new menu is displayed
+    NSLog(@"Extended menu items displayed: %@", self.menuItemsExtend);
+}
+
+//- (void)showMenuItemsExtend:(NSArray<NSString *> *)items
+//{
+//    if (!self.menuItemsExtend || self.menuItemsExtend.count == 0) {
+//        return; // Do nothing if menuItemsExtend is not set or empty
+//    }
+//
+//    UIMenuController *menuController = [UIMenuController sharedMenuController];
+//    if (menuController.isMenuVisible) return;
+//
+//    NSMutableArray *menuControllerItems = [NSMutableArray arrayWithCapacity:self.menuItemsExtend.count];
+//
+//    for (NSString *menuItemName in self.menuItemsExtend) {
+//        NSString *sel = [NSString stringWithFormat:@"%@%@", SELECTOR_CUSTOM, menuItemName];
+//        UIMenuItem *item = [[UIMenuItem alloc] initWithTitle:menuItemName action:NSSelectorFromString(sel)];
+//        [menuControllerItems addObject:item];
+//    }
+//
+//    menuController.menuItems = menuControllerItems;
+//    [menuController setTargetRect:self.bounds inView:self];
+//    [menuController setMenuVisible:YES animated:YES];
+//}
+
+
+// Method to show menu items (either menuItems or menuItemsExtend)
+- (void)showMenuItems:(NSArray<NSString *> *)items
+{
+    UIMenuController *menuController = [UIMenuController sharedMenuController];
+    if (menuController.isMenuVisible) return;
+
+    NSMutableArray *menuControllerItems = [NSMutableArray arrayWithCapacity:items.count];
+
+    for (NSString *menuItemName in items) {
+        NSString *sel = [NSString stringWithFormat:@"%@%@", SELECTOR_CUSTOM, menuItemName];
+        UIMenuItem *item = [[UIMenuItem alloc] initWithTitle:menuItemName action:NSSelectorFromString(sel)];
+        [menuControllerItems addObject:item];
+    }
+
+    menuController.menuItems = menuControllerItems;
+    [menuController setTargetRect:self.bounds inView:self];
+    [menuController setMenuVisible:YES animated:YES];
 }
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)sel
