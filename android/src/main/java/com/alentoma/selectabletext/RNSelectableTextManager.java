@@ -1,31 +1,25 @@
 package com.rob117.selectabletext;
 
+import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ActionMode;
-import android.view.ActionMode.Callback;
-
-import java.util.Map;
-
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.common.MapBuilder;
-import com.facebook.react.uimanager.events.RCTEventEmitter;
-
+import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.facebook.react.views.text.ReactTextView;
 import com.facebook.react.views.text.ReactTextViewManager;
 
 import java.util.List;
 import java.util.ArrayList;
 
-
 public class RNSelectableTextManager extends ReactTextViewManager {
-    public static final String REACT_CLASS = "RNSelectableText";
 
+    private static final String REACT_CLASS = "RNSelectableText";
+    private boolean isExtendedMenuShown = false; // Flag to track if extended menu is shown
 
     @Override
     public String getName() {
@@ -37,29 +31,45 @@ public class RNSelectableTextManager extends ReactTextViewManager {
         return new ReactTextView(context);
     }
 
-
     @ReactProp(name = "menuItems")
     public void setMenuItems(ReactTextView textView, ReadableArray items) {
-        List<String> result = new ArrayList<String>(items.size());
+        List<String> result = new ArrayList<>(items.size());
         for (int i = 0; i < items.size(); i++) {
             result.add(items.getString(i));
         }
-
-        registerSelectionListener(result.toArray(new String[items.size()]), textView);
+        registerSelectionListener(result.toArray(new String[0]), textView);
     }
 
-    public void registerSelectionListener(final String[] menuItems, final ReactTextView view) {
-        view.setCustomSelectionActionModeCallback(new Callback() {
+    @ReactProp(name = "menuItemsExtend")
+    public void setMenuItemsExtend(ReactTextView textView, ReadableArray itemsExtend) {
+        if (itemsExtend != null) {
+            List<String> resultExtend = new ArrayList<>(itemsExtend.size());
+            for (int i = 0; i < itemsExtend.size(); i++) {
+                resultExtend.add(itemsExtend.getString(i));
+            }
+            textView.setTag(resultExtend); // Store extended menu items in the view tag
+        }
+    }
+
+    private void registerSelectionListener(final String[] menuItems, final ReactTextView view) {
+        view.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
             @Override
             public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                // Called when action mode is first created. The menu supplied
-                // will be used to generate action buttons for the action mode
-                // Android Smart Linkify feature pushes extra options into the menu
-                // and would override the generated menu items
                 menu.clear();
-                for (int i = 0; i < menuItems.length; i++) {
-                  menu.add(0, i, 0, menuItems[i]);
+
+                if (!isExtendedMenuShown) {
+                    for (int i = 0; i < menuItems.length; i++) {
+                        menu.add(0, i, 0, menuItems[i]);
+                    }
+                } else {
+                    List<String> extendedItems = (List<String>) view.getTag();
+                    if (extendedItems != null) {
+                        for (int i = 0; i < extendedItems.size(); i++) {
+                            menu.add(0, i, 0, extendedItems.get(i));
+                        }
+                    }
                 }
+
                 return true;
             }
 
@@ -70,44 +80,53 @@ public class RNSelectableTextManager extends ReactTextViewManager {
 
             @Override
             public void onDestroyActionMode(ActionMode mode) {
-                // Called when an action mode is about to be exited and
+                isExtendedMenuShown = false; // Reset the flag when action mode is destroyed
             }
 
             @Override
             public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                // Get selected text range
                 int selectionStart = view.getSelectionStart();
                 int selectionEnd = view.getSelectionEnd();
                 String selectedText = view.getText().toString().substring(selectionStart, selectionEnd);
 
-                // Dispatch event
+                // If the first item in menuItems is selected, toggle to menuItemsExtend
+                if (item.getItemId() == 0 && !isExtendedMenuShown) {
+                    List<String> extendedItems = (List<String>) view.getTag();
+                    if (extendedItems != null) {
+                        isExtendedMenuShown = true; // Set the flag to show the extended menu
+                        mode.invalidate(); // Invalidate the action mode to reload the menu
+                        return true; // Do not end the action mode here
+                    }
+                }
+
+                // Dispatch selection event to JS
                 onSelectNativeEvent(view, menuItems[item.getItemId()], selectedText, selectionStart, selectionEnd);
 
+                // End action mode
                 mode.finish();
-
                 return true;
             }
-
         });
     }
 
-    public void onSelectNativeEvent(ReactTextView view, String eventType, String content, int selectionStart, int selectionEnd) {
+    private void onSelectNativeEvent(ReactTextView view, String eventType, String content, int selectionStart, int selectionEnd) {
         WritableMap event = Arguments.createMap();
         event.putString("eventType", eventType);
         event.putString("content", content);
         event.putInt("selectionStart", selectionStart);
         event.putInt("selectionEnd", selectionEnd);
 
-        // Dispatch
+        // Dispatch event to JS
         ReactContext reactContext = (ReactContext) view.getContext();
-        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
-                view.getId(),
-                "topSelection",
-                event
-        );
+        reactContext
+            .getJSModule(RCTEventEmitter.class)
+            .receiveEvent(view.getId(), "topSelection", event);
     }
 
     @Override
-    public Map getExportedCustomDirectEventTypeConstants() {
-        return MapBuilder.builder().put("topSelection",MapBuilder.of("registrationName","onSelection")).build();
+    public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
+        // Register the custom event for JS
+        return MapBuilder.of("topSelection", MapBuilder.of("registrationName", "onSelection"));
     }
 }
