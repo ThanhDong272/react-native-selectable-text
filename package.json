@@ -1,6 +1,6 @@
 {
     "name": "@thanhdong272/react-native-selectable-text",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "React Native component used to provide the features of pass different context menu items and events",
     "main": "index.ts",
     "homepage": "https://github.com/ThanhDong272/react-native-selectable-text",

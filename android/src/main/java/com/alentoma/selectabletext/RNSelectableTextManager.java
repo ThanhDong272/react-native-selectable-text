@@ -125,8 +125,7 @@ public class RNSelectableTextManager extends ReactTextViewManager {
     }
 
     @Override
-    public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
-        // Register the custom event for JS
-        return MapBuilder.of("topSelection", MapBuilder.of("registrationName", "onSelection"));
+    public Map getExportedCustomDirectEventTypeConstants() {
+        return MapBuilder.builder().put("topSelection",MapBuilder.of("registrationName","onSelection")).build();
     }
 }
