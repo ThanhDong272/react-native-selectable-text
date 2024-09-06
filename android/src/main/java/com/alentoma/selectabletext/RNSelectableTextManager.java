@@ -1,15 +1,21 @@
 package com.rob117.selectabletext;
 
-import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ActionMode;
+import android.view.ActionMode.Callback;
+
+import java.util.Map;
+
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.uimanager.ThemedReactContext;
-import com.facebook.react.uimanager.annotations.ReactProp;
+import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
+
+import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.views.text.ReactTextView;
 import com.facebook.react.views.text.ReactTextViewManager;
 
