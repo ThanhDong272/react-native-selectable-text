@@ -24,7 +24,7 @@ Typescript will give you an error saying that you need value to be defined. You 
 The reason we do this is because by using `textComponentsProps`, we can use nested text styles and everything just works. Example:
 
 ```javascript
-import { SelectableText } from "@rob117/react-native-selectable-text";
+import { SelectableText } from "@thanhdong272/react-native-selectable-text";
 
 const child = (
     <Text style={ {color: 'orange'} } { ...props }>
@@ -57,13 +57,13 @@ the `textComponentProps` child property must consist exclusively of `Text` (or s
 
 ## Getting started
 
-`$ yarn add @rob117/react-native-selectable-text`
+`$ yarn add @thanhdong272/react-native-selectable-text`
 
 ## This project does not auto-link for iOS, you MUST do the following
 
 I don't know how to get auto-linking working, so do this instead:
 
-1. Add `pod 'react-native-selectable-text', :path => '../node_modules/@rob117/react-native-selectable-text'` to your projects podfile
+1. Add `pod 'react-native-selectable-text', :path => '../node_modules/@thanhdong272/react-native-selectable-text'` to your projects podfile
 2. run `pod install`
 
 #### Android
