@@ -27,6 +27,7 @@ export interface SelectableTextProps {
   }) => void;
   prependToChild: ReactNode;
   menuItems: string[];
+  menuItemsExtend?: string[];
   highlights?: Array<IHighlights>;
   highlightColor?: ColorValue;
   style?: StyleProp<TextStyle>;
