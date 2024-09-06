@@ -1,21 +1,28 @@
 {
-    "name": "@rob117/react-native-selectable-text",
-    "version": "1.9.0",
+    "name": "@thanhdong272/react-native-selectable-text",
+    "version": "1.0.0",
     "description": "React Native component used to provide the features of pass different context menu items and events",
     "main": "index.ts",
-    "homepage": "https://github.com/rob117/react-native-selectable-text",
+    "homepage": "https://github.com/ThanhDong272/react-native-selectable-text",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [
         "react-native"
     ],
-    "author": "Rob Sherling <rob.sherling@gmail.com>",
+    "author": "Thanh Dong <dongthanh272@gmail.com>",
     "license": "MIT",
     "devDependencies": {
         "react-native": "*"
     },
     "dependencies": {
         "fast-memoize": "*"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ThanhDong272/react-native-selectable-text.git"
+    },
+    "bugs": {
+        "url": "https://github.com/ThanhDong272/react-native-selectable-text/issues"
     }
 }
