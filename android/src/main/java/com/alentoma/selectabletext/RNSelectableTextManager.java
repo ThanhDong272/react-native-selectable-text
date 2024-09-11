@@ -106,10 +106,18 @@ public class RNSelectableTextManager extends ReactTextViewManager {
                     }
                 }
 
-                // Dispatch selection event to JS
-                onSelectNativeEvent(view, menuItems[item.getItemId()], selectedText, selectionStart, selectionEnd);
+                if (isExtendedMenuShown) {
+                    // Handle selection from extended menu
+                    List<String> extendedItems = (List<String>) view.getTag();
+                    if (extendedItems != null && item.getItemId() < extendedItems.size()) {
+                        onSelectNativeEvent(view, extendedItems.get(item.getItemId()), selectedText, selectionStart, selectionEnd);
+                    }
+                } else {
+                    onSelectNativeEvent(view, menuItems[item.getItemId()], selectedText, selectionStart, selectionEnd);
+                }
 
-                // End action mode
+                // End action mode and reset the flag after selecting an item
+                isExtendedMenuShown = false;
                 mode.finish();
                 return true;
             }
